@@ -26,11 +26,6 @@ Perfect for self-hosters, homelab enthusiasts, and DevOps engineers who want ful
 
 - [📝 Description](#-description)
 - [🚀 Table Of Content](#-table-of-content)
-- [📸 Screenshots](#-screenshots)
-  - [Server Overview \& Telemetry](#server-overview--telemetry)
-  - [Docker Management \& Live Logs](#docker-management--live-logs)
-  - [MCP Tools Catalog \& Playground](#mcp-tools-catalog--playground)
-  - [OAuth 2.0 Consent Screen](#oauth-20-consent-screen)
 - [✨ Features](#-features)
   - [🖥️ System Telemetry \& Hardware Monitor](#️-system-telemetry--hardware-monitor)
   - [🐳 Docker Orchestration \& Streaming Logs](#-docker-orchestration--streaming-logs)
@@ -56,21 +51,6 @@ Perfect for self-hosters, homelab enthusiasts, and DevOps engineers who want ful
 - [👤 Author](#-author)
 - [🙏 Acknowledgments](#-acknowledgments)
 - [📮 Support](#-support)
-- [⭐ Star History](#-star-history)
-
-## 📸 Screenshots
-
-### Server Overview & Telemetry
-![Server Overview](docs/public/screenshots/Overview.png)
-
-### Docker Management & Live Logs
-![Docker Management](docs/public/screenshots/Docker.png)
-
-### MCP Tools Catalog & Playground
-![Tools Catalog](docs/public/screenshots/Tools.png)
-
-### OAuth 2.0 Consent Screen
-![OAuth Consent Screen](docs/public/screenshots/Consent.png)
 
 ## ✨ Features
 
@@ -272,16 +252,6 @@ If you encounter any issues or have questions:
 1. Check existing [Issues](https://github.com/klpod221/kcp/issues)
 2. Create a new issue with reproduction steps and logs
 3. Contact via email: [klpod221@gmail.com](mailto:klpod221@gmail.com)
-
-## ⭐ Star History
-
-<a href="https://www.star-history.com/?repos=klpod221%2Fkcp&type=date&legend=bottom-right">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=klpod221/kcp&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=klpod221/kcp&type=date&theme=dark&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=klpod221/kcp&type=date&legend=top-left" />
- </picture>
-</a>
 
 ---
 
