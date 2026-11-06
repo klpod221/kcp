@@ -1,0 +1,56 @@
+# Komepage Configuration Example
+
+system_info:
+  enabled: true
+  show: ["cpu", "ram", "disk", "os", "temp", "network", "docker", "load"]
+  network_interface: ""
+
+clock:
+  enabled: true
+  time_format: "HH:mm"
+  date_format: "dddd, MMMM D"
+
+weather:
+  enabled: true
+  location:
+    latitude: 21.0285
+    longitude: 105.8542
+    name: "Hanoi"
+
+background:
+  image: ""
+  color: "#0f172a"
+  blur: 4
+  overlay_opacity: 0.4
+
+search:
+  default: "google"
+
+dashboard:
+  - group: "Entertainment"
+    icon: "mdi-popcorn"
+    cols: 3
+    items:
+      - name: "KCP"
+        url: "https://kcp.example.com"
+        host: "kcp.example.com"
+        icon: "mdi-view-dashboard"
+      - name: "Jellyfin"
+        url: "https://media.example.com"
+        host: "media.example.com"
+        icon: "mdi-movie-open-outline"
+      - name: "Jellyseerr"
+        url: "https://request.example.com"
+        host: "request.example.com"
+        icon: "mdi-popcorn"
+  - group: "Dev & AI"
+    icon: "mdi-code-braces"
+    cols: 3
+    items:
+      - name: "GitHub"
+        url: "https://github.com"
+        icon: "mdi-github"
+      - name: "Gemini"
+        url: "https://gemini.google.com"
+        icon: "mdi-star-four-points"
+

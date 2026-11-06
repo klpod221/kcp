@@ -1,0 +1,269 @@
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    networks:
+      - main_nets
+
+  homepage:
+    image: ghcr.io/klpod221/komepage:latest
+    container_name: homepage
+    restart: unless-stopped
+    volumes:
+      - ./services/komepage/config.yml:/app/config.yml:ro
+      - /etc/os-release:/etc/os-release:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - main_nets
+
+  warp-relay:
+    image: alpine/socat
+    container_name: warp_relay
+    restart: unless-stopped
+    network_mode: host
+    command: tcp-listen:40001,fork,reuseaddr,bind=0.0.0.0 tcp-connect:127.0.0.1:40000
+
+  rclone-relay:
+    image: alpine/socat
+    container_name: rclone_relay
+    restart: unless-stopped
+    network_mode: host
+    command: tcp-listen:5573,fork,reuseaddr,bind=0.0.0.0 tcp-connect:127.0.0.1:5572
+
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Ho_Chi_Minh
+    volumes:
+      - ./services/jellyfin/config:/config
+      - type: bind
+        source: /mnt/gdrive/Media
+        target: /data/media
+        read_only: true
+        bind:
+          propagation: rslave
+    ports:
+      - 8096:8096
+    devices:
+      - /dev/dri:/dev/dri
+    networks:
+      - main_nets
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Ho_Chi_Minh
+    volumes:
+      - ./services/radarr/config:/config
+      - ./downloads:/downloads
+      - type: bind
+        source: /mnt/gdrive/Media
+        target: /data/media
+        bind:
+          propagation: rslave
+    ports:
+      - 7878:7878
+    networks:
+      - main_nets
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Ho_Chi_Minh
+    volumes:
+      - ./services/sonarr/config:/config
+      - ./downloads:/downloads
+      - type: bind
+        source: /mnt/gdrive/Media
+        target: /data/media
+        bind:
+          propagation: rslave
+    ports:
+      - 8989:8989
+    networks:
+      - main_nets
+
+  lidarr:
+    image: lscr.io/linuxserver/lidarr:latest
+    container_name: lidarr
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Ho_Chi_Minh
+    volumes:
+      - ./services/lidarr/config:/config
+      - ./downloads:/downloads
+      - type: bind
+        source: /mnt/gdrive/Media
+        target: /data/media
+        bind:
+          propagation: rslave
+    ports:
+      - 8686:8686
+    networks:
+      - main_nets
+
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Ho_Chi_Minh
+    volumes:
+      - ./services/bazarr/config:/config
+      - type: bind
+        source: /mnt/gdrive/Media
+        target: /data/media
+        bind:
+          propagation: rslave
+    ports:
+      - 6767:6767
+    networks:
+      - main_nets
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Ho_Chi_Minh
+    volumes:
+      - ./services/prowlarr/config:/config
+    ports:
+      - 9696:9696
+    networks:
+      - main_nets
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Ho_Chi_Minh
+      - WEBUI_PORT=8080
+    volumes:
+      - ./services/qbittorrent/config:/config
+      - ./downloads:/downloads
+    ports:
+      - 8080:8080
+      - 6881:6881
+      - 6881:6881/udp
+    networks:
+      - main_nets
+
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+      - LOG_LEVEL=info
+      - TZ=Asia/Ho_Chi_Minh
+    ports:
+      - 8191:8191
+    restart: unless-stopped
+    networks:
+      - main_nets
+
+  jellyseerr:
+    image: ghcr.io/seerr-team/seerr:latest
+    container_name: jellyseerr
+    restart: unless-stopped
+    command: >
+      sh -c "sed -i 's/api.themoviedb.org/api.tmdb.org/g' /app/dist/api/themoviedb/index.js && NODE_ENV=production node dist/index.js"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Ho_Chi_Minh
+    volumes:
+      - ./services/jellyseerr/config:/app/config
+    ports:
+      - 5055:5055
+    networks:
+      - main_nets
+
+  triliumnext:
+    image: triliumnext/trilium:latest
+    container_name: triliumnext
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Ho_Chi_Minh
+      - TRILIUM_DATA_DIR=/home/node/trilium-data
+      - TRILIUM_TRUST_REVERSE_PROXY=true
+      - TRILIUM_BACKEND_SCRIPTING_ENABLED=true
+      - TRILIUM_ANTIGRAVITY_ACP_PATH=/home/node/trilium-data/antigravity-agent/agy_acp_server.par
+    volumes:
+      - ./services/triliumnext/data:/home/node/trilium-data
+    networks:
+      - main_nets
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB:-postgres}
+    volumes:
+      - ./services/postgres/data:/var/lib/postgresql/data
+      - ./services/postgres/init-scripts:/docker-entrypoint-initdb.d:ro
+    ports:
+      - 5432:5432
+    networks:
+      - main_nets
+
+  kcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kcp
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    env_file:
+      - ./.env
+    volumes:
+      - ./app:/app/app
+      - ./tests:/app/tests
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/os-release:/etc/os-release:ro
+      - type: bind
+        source: /mnt/gdrive/Media
+        target: /data/media
+        read_only: true
+        bind:
+          propagation: rslave
+    ports:
+      - 8000:8000
+    depends_on:
+      - postgres
+    networks:
+      - main_nets
+
+networks:
+  main_nets:
+    external: true

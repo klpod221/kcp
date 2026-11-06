@@ -1,0 +1,27 @@
+# services/ and storage volumes
+services/
+downloads/
+
+# git & IDE
+.git/
+.gitignore
+.env
+.idea/
+.vscode/
+
+# node & frontend artifacts
+frontend/node_modules/
+frontend/dist/
+
+# python cache & test artifacts
+**/__pycache__/
+**/*.pyc
+.pytest_cache/
+venv/
+.venv/
+*.db
+*.sqlite3
+
+# documentation & docker-compose
+README.md
+docker-compose.yaml
