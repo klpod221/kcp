@@ -50,8 +50,22 @@ async def handle_mcp_options():
     )
 
 
-@router.api_route("/mcp", methods=["GET", "POST", "DELETE"], summary="Streamable HTTP & SSE MCP Endpoint")
-@router.api_route("/mcp/", methods=["GET", "POST", "DELETE"], include_in_schema=False)
+@router.delete("/mcp", summary="Terminate MCP Session")
+@router.delete("/mcp/", include_in_schema=False)
+async def handle_mcp_delete(request: Request):
+    session_id = request.headers.get("mcp-session-id")
+    if session_id:
+        transport = session_manager._server_instances.get(session_id)
+        if transport is not None:
+            logger.info(f"Terminating MCP session via DELETE: {session_id[:64]}")
+            await session_manager._discard_session(session_id, transport)
+        else:
+            logger.info(f"Received DELETE for unknown or already closed MCP session: {session_id[:64]}")
+    return Response(status_code=200)
+
+
+@router.api_route("/mcp", methods=["GET", "POST"], summary="Streamable HTTP & SSE MCP Endpoint")
+@router.api_route("/mcp/", methods=["GET", "POST"], include_in_schema=False)
 async def handle_mcp(
     request: Request,
     auth_data: Tuple[User, dict] = Depends(get_current_user_from_token),
