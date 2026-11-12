@@ -115,8 +115,15 @@ class BaseServiceClient:
             logger.warning(
                 f"[{self.service_name}] HTTP {exc.response.status_code} on {method} {url}: {error_body}"
             )
+            error_detail = error_body
+            try:
+                err_json = json.loads(error_body)
+                if isinstance(err_json, dict) and "message" in err_json:
+                    error_detail = err_json["message"]
+            except Exception:
+                pass
             raise RuntimeError(
-                f"{self.service_name} returned HTTP {exc.response.status_code}: {error_body}"
+                f"{self.service_name} returned HTTP {exc.response.status_code}: {error_detail}"
             ) from exc
         except httpx.RequestError as exc:
             logger.error(f"[{self.service_name}] Connection error on {method} {url}: {exc}")

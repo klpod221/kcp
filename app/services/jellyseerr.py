@@ -1,3 +1,4 @@
+import urllib.parse
 from typing import Any, Optional
 
 from app.config import settings
@@ -28,7 +29,9 @@ class JellyseerrService(BaseServiceClient):
         return status_map.get(status_code, f"unknown_{status_code}")
 
     async def search(self, query: str, page: int = 1) -> dict[str, Any]:
-        data = await self.request("GET", "/api/v1/search", params={"query": query, "page": page})
+        encoded_query = urllib.parse.quote(str(query).strip())
+        endpoint = f"/api/v1/search?query={encoded_query}&page={page}"
+        data = await self.request("GET", endpoint)
         results = data.get("results", []) if isinstance(data, dict) else []
         formatted = []
         for r in results:
@@ -106,11 +109,12 @@ class JellyseerrService(BaseServiceClient):
         media_type: str = "movie",
         seasons: Optional[list[int]] = None,
     ) -> dict[str, Any]:
+        m_type = str(media_type).lower().strip()
         payload: dict[str, Any] = {
-            "mediaId": media_id,
-            "mediaType": media_type,
+            "mediaId": int(media_id),
+            "mediaType": m_type,
         }
-        if media_type == "tv":
+        if m_type == "tv":
             payload["seasons"] = seasons if seasons is not None else "all"
         res = await self.request("POST", "/api/v1/request", json_data=payload)
         return {"action": "created_request", "result": res}

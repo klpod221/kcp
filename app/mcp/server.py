@@ -1,5 +1,8 @@
 from app.config import settings
 from app.core.logging import logger
+import asyncio
+import functools
+import json
 
 try:
     from mcp.server.mcpserver import MCPServer as Server
@@ -17,6 +20,48 @@ mcp_server = Server(
     version=settings.APP_VERSION,
     website_url=settings.BASE_URL,
 )
+
+# Intercept and wrap tool functions so that uncaught exceptions return informative JSON
+# instead of causing an unhandled stream crash and CONNECTION_CLOSED on AI clients.
+_orig_add_tool = mcp_server.add_tool
+
+
+def _safe_add_tool(fn, name=None, *args, **kwargs):
+    tool_name = name or getattr(fn, "__name__", "unnamed_tool")
+
+    if asyncio.iscoroutinefunction(fn):
+        @functools.wraps(fn)
+        async def _safe_async_fn(*fn_args, **fn_kwargs):
+            try:
+                return await fn(*fn_args, **fn_kwargs)
+            except Exception as exc:
+                logger.error(f"Error executing MCP tool '{tool_name}': {exc}", exc_info=True)
+                return json.dumps({
+                    "status": "error",
+                    "tool": tool_name,
+                    "error_type": type(exc).__name__,
+                    "message": str(exc),
+                }, ensure_ascii=False)
+        target_fn = _safe_async_fn
+    else:
+        @functools.wraps(fn)
+        def _safe_sync_fn(*fn_args, **fn_kwargs):
+            try:
+                return fn(*fn_args, **fn_kwargs)
+            except Exception as exc:
+                logger.error(f"Error executing MCP tool '{tool_name}': {exc}", exc_info=True)
+                return json.dumps({
+                    "status": "error",
+                    "tool": tool_name,
+                    "error_type": type(exc).__name__,
+                    "message": str(exc),
+                }, ensure_ascii=False)
+        target_fn = _safe_sync_fn
+
+    return _orig_add_tool(target_fn, name=name, *args, **kwargs)
+
+
+mcp_server.add_tool = _safe_add_tool
 
 lowlevel_server = getattr(
     mcp_server,
