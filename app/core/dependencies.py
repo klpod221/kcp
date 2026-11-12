@@ -31,7 +31,8 @@ async def get_current_user_from_token(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing Bearer access token",
             headers={
-                "WWW-Authenticate": f'Bearer realm="{settings.MCP_SERVER_NAME}", resource_metadata="{resource_metadata_url}"'
+                "WWW-Authenticate": f'Bearer realm="{settings.MCP_SERVER_NAME}", resource_metadata="{resource_metadata_url}"',
+                "Access-Control-Expose-Headers": "WWW-Authenticate, mcp-session-id, mcp-protocol-version",
             },
         )
 

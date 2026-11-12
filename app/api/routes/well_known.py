@@ -7,7 +7,9 @@ router = APIRouter(tags=["OAuth Discovery & Metadata"])
 
 
 @router.get("/.well-known/oauth-protected-resource")
+@router.get("/.well-known/oauth-protected-resource/")
 @router.get("/.well-known/oauth-protected-resource/mcp")
+@router.get("/.well-known/oauth-protected-resource/mcp/")
 async def oauth_protected_resource():
     """RFC 9728: OAuth 2.0 Protected Resource Metadata for MCP."""
     return JSONResponse(
@@ -24,14 +26,19 @@ async def oauth_protected_resource():
 
 
 @router.get("/.well-known/oauth-authorization-server")
+@router.get("/.well-known/oauth-authorization-server/")
+@router.get("/.well-known/oauth-authorization-server/mcp")
+@router.get("/.well-known/oauth-authorization-server/mcp/")
 @router.get("/.well-known/openid-configuration")
+@router.get("/.well-known/openid-configuration/")
 async def oauth_authorization_server_metadata():
-    """RFC 8414: OAuth 2.0 Authorization Server Metadata."""
+    """RFC 8414 & RFC 7591: OAuth 2.0 Authorization Server & Dynamic Client Registration Metadata."""
     return JSONResponse(
         {
             "issuer": settings.BASE_URL,
             "authorization_endpoint": f"{settings.BASE_URL}/authorize",
             "token_endpoint": f"{settings.BASE_URL}/token",
+            "registration_endpoint": f"{settings.BASE_URL}/register",
             "scopes_supported": ["mcp:read", "mcp:tools"],
             "response_types_supported": ["code"],
             "grant_types_supported": ["authorization_code", "refresh_token"],

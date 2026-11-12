@@ -29,9 +29,7 @@ class JellyseerrService(BaseServiceClient):
         return status_map.get(status_code, f"unknown_{status_code}")
 
     async def search(self, query: str, page: int = 1) -> dict[str, Any]:
-        encoded_query = urllib.parse.quote(str(query).strip())
-        endpoint = f"/api/v1/search?query={encoded_query}&page={page}"
-        data = await self.request("GET", endpoint)
+        data = await self.request("GET", "/api/v1/search", params={"query": str(query).strip(), "page": page})
         results = data.get("results", []) if isinstance(data, dict) else []
         formatted = []
         for r in results:

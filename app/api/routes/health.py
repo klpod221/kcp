@@ -52,7 +52,13 @@ async def serve_app_css():
 @router.api_route("/{full_path:path}", methods=["GET", "HEAD"], include_in_schema=False)
 async def serve_spa(request: Request, full_path: str = ""):
     """Serves the Vue 3 SPA index.html for frontend client-side routes, falling back to 404 or health JSON."""
-    if full_path.startswith("api/") or full_path.startswith("mcp") or full_path in ("authorize", "token", "consent"):
+    if (
+        full_path.startswith("api/")
+        or full_path.startswith("mcp")
+        or full_path.startswith(".well-known")
+        or full_path.startswith("register")
+        or full_path in ("authorize", "token", "consent")
+    ):
         return JSONResponse(status_code=404, content={"detail": "Not Found"})
 
     spa_path = get_spa_index_path()

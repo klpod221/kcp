@@ -1,5 +1,6 @@
 import json
 from typing import Any, Optional
+import urllib.parse
 
 try:
     import httpx
@@ -79,16 +80,18 @@ class BaseServiceClient:
         url = f"{self.base_url}/{path.lstrip('/')}"
         merged_headers = {**self.default_headers, **(headers or {})}
 
-        cleaned_params = None
         if params:
             cleaned_params = {k: v for k, v in params.items() if v is not None}
+            if cleaned_params:
+                query_string = urllib.parse.urlencode(cleaned_params, doseq=True, quote_via=urllib.parse.quote)
+                sep = "&" if "?" in url else "?"
+                url = f"{url}{sep}{query_string}"
 
         try:
             async with httpx.AsyncClient(timeout=self.timeout, follow_redirects=True) as client:
                 response = await client.request(
                     method=method.upper(),
                     url=url,
-                    params=cleaned_params,
                     json=json_data,
                     data=data,
                     headers=merged_headers,
@@ -118,8 +121,15 @@ class BaseServiceClient:
             error_detail = error_body
             try:
                 err_json = json.loads(error_body)
-                if isinstance(err_json, dict) and "message" in err_json:
-                    error_detail = err_json["message"]
+                if isinstance(err_json, dict):
+                    error_detail = err_json.get("message") or err_json.get("error") or error_body
+                elif isinstance(err_json, list) and len(err_json) > 0 and isinstance(err_json[0], dict):
+                    error_detail = (
+                        err_json[0].get("errorMessage")
+                        or err_json[0].get("message")
+                        or err_json[0].get("error")
+                        or error_body
+                    )
             except Exception:
                 pass
             raise RuntimeError(

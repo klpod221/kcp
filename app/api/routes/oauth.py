@@ -519,3 +519,75 @@ async def oauth_token(
         status_code=status.HTTP_400_BAD_REQUEST,
         content={"error": "unsupported_grant_type", "error_description": f"Grant type '{grant_type}' is unsupported"},
     )
+
+
+@router.options("/register", include_in_schema=False)
+@router.options("/oauth/register", include_in_schema=False)
+async def oauth_register_options():
+    return Response(
+        status_code=200,
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Authorization, Content-Type, Accept",
+        },
+    )
+
+
+@router.post("/register", summary="OAuth 2.0 Dynamic Client Registration (RFC 7591)", status_code=status.HTTP_201_CREATED)
+@router.post("/oauth/register", include_in_schema=False)
+async def oauth_register_client(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """RFC 7591: Dynamic Client Registration Endpoint for Gemini, Claude, and MCP clients."""
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    client_name = body.get("client_name") or "Dynamic MCP Client"
+    redirect_uris = body.get("redirect_uris") or []
+    if isinstance(redirect_uris, str):
+        redirect_uris = [redirect_uris]
+
+    client_id = f"client_{generate_secure_token(16)}"
+    raw_secret = generate_secure_token(32)
+    secret_hash = hash_password(raw_secret)
+
+    client = OAuthClient(
+        client_id=client_id,
+        client_secret_hash=secret_hash,
+        client_name=str(client_name)[:128],
+        redirect_uris_json=json.dumps(redirect_uris),
+        allowed_scopes="mcp:read mcp:tools",
+        is_active=True,
+        created_at=datetime.now(timezone.utc),
+    )
+    db.add(client)
+    await db.commit()
+
+    logger.info(f"Dynamically registered OAuth client '{client_id}' ({client_name}) with redirect_uris={redirect_uris}")
+
+    auth_method = body.get("token_endpoint_auth_method") or "client_secret_post"
+    issued_at = int(datetime.now(timezone.utc).timestamp())
+
+    return JSONResponse(
+        status_code=status.HTTP_201_CREATED,
+        content={
+            "client_id": client_id,
+            "client_secret": raw_secret,
+            "client_id_issued_at": issued_at,
+            "client_secret_expires_at": 0,
+            "client_name": client.client_name,
+            "redirect_uris": redirect_uris,
+            "grant_types": ["authorization_code", "refresh_token"],
+            "response_types": ["code"],
+            "token_endpoint_auth_method": auth_method,
+            "scope": "mcp:read mcp:tools",
+        },
+        headers={
+            "Cache-Control": "no-store",
+            "Pragma": "no-cache",
+        },
+    )
